@@ -1,14 +1,10 @@
 'use strict';
 
-var autoprefixer = require('autoprefixer-core');
+var csswring = require('csswring');
 var path = require('path');
 var mixlib = require('mix/lib');
 
-var DEFAULT_CONSTRAINTS = ['last 2 versions', 'ie 9'];
-
-module.exports = function () {
-    var constraints = arguments.length > 0 ? Array.prototype.slice.call(arguments) : DEFAULT_CONSTRAINTS;
-
+module.exports = function (options) {
     return function (tree) {
         var nodes = tree.nodes.map(function (node) {
             var start = new Date();
@@ -20,23 +16,22 @@ module.exports = function () {
                 map: {
                     prev: prevSourceMap !== undefined ? prevSourceMap : false,
                     sourcesContent: true,
-                    annotation: false
+                    annotation: mixlib.tree.sourceMap.name(node)
                 }
             };
 
             try {
                 var outputNode = tree.cloneNode(node);
-                var result = autoprefixer({ browsers: constraints }).process(input, opts);
+                var result = csswring(options).wring(input, opts);
                 outputNode.data = new Buffer(result.css, 'utf8');
 
                 var sourceMap = JSON.parse(result.map);
                 mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
 
-                mixlib.logger.log('autoprefixer', 'Prefixed ' + node.name, new Date() - start);
-
+                mixlib.logger.log('csswring', 'Minified ' + node.name, new Date() - start);
                 return outputNode;
             } catch (e) {
-                mixlib.logger.error('autoprefixer', e.message);
+                mixlib.logger.error('csswring', e.message);
             }
 
             return undefined;

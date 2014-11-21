@@ -3,11 +3,11 @@
 var express = require('express');
 var http = require('http');
 var livereload = require('connect-livereload');
-var mix = require('mix');
 var morgan = require('morgan');
 var parseurl = require('parseurl');
 var tinylr = require('tiny-lr');
 var chalk = require('chalk');
+var mixlib = require('mix/lib');
 
 var LIVERELOAD_PORT = 35729;
 
@@ -18,7 +18,7 @@ module.exports = function (port, behavior) {
     tinylrServer.listen(LIVERELOAD_PORT);
 
     var app = express()
-        // .use(morgan())
+        .use(morgan('dev'))
         .use(livereload({ port: LIVERELOAD_PORT }))
         .use(staticMiddleware);
     if (behavior) {
@@ -26,7 +26,7 @@ module.exports = function (port, behavior) {
     }
     app.use(fileMiddleware('index.html'));
     app.listen(port);
-    var currentTree = new mix.Tree([]);
+    var currentTree = mixlib.tree([]);
 
     function staticMiddleware(req, res, next) {
         var pathname = parseurl(req).pathname;
@@ -63,19 +63,23 @@ module.exports = function (port, behavior) {
     }
 
     return function (tree) {
-        currentTree = tree;
-        tree.nodes.forEach(function (node) {
-            tinylr.changed('/' + node.name);
-        });
-
         var message;
         if (!receivedInitialTree) {
             receivedInitialTree = true;
             message = 'Server started on port ' + chalk.yellow(port);
         } else {
+            tree.nodes.forEach(function (node, i) {
+                if (currentTree.nodes[i] !== node) {
+                    tinylr.changed('/' + node.name);
+                }
+            });
+
             message = 'Triggered LiveReload';
         }
-        mix.log('serve', message);
+
+        currentTree = tree;
+
+        mixlib.logger.log('serve', message);
 
         return tree;
     };

@@ -1,12 +1,13 @@
 'use strict';
 
 var crypto = require('crypto');
-var mix = require('mix');
 var path = require('path');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};
 
+    // TODO: allow globs
     var entrypoint = options.entrypoint || 'index.html';
     if (typeof entrypoint === 'string') {
         entrypoint = [entrypoint];
@@ -57,7 +58,7 @@ module.exports = function (options) {
 
         nodes.reverse();
 
-        return new mix.Tree(nodes);
+        return mixlib.tree(nodes);
     };
 };
 
@@ -92,7 +93,7 @@ function resolveDependencies(nodes, nodeMap, stack) {
         var siblingOf = nodeMap[node.name].siblingOf;
         if (siblingOf === null && !isBinary(node)) {
             var contents = node.data.toString('utf8');
-            var filepathRegex = /(?:\'|\"|\(|\/\/# sourceMappingURL=)([a-z0-9_@\-\/\.]{2,})/ig;
+            var filepathRegex = /(?:\'|\"|\(|(?:\/\/|\/*)# sourceMappingURL=)([a-z0-9_@\-\/\.]{2,})/ig;
             var match;
             while ((match = filepathRegex.exec(contents))) {
                 var reference = match[1];

@@ -1,10 +1,10 @@
 'use strict';
 
 var File = require('vinyl');
-var mix = require('mix');
 var path = require('path');
 var rimraf = require('rimraf');
 var vfs = require('vinyl-fs');
+var mixlib = require('mix/lib');
 
 module.exports = function (dir) {
     var pending = [];
@@ -47,33 +47,33 @@ module.exports = function (dir) {
     }
 
     return function (tree) {
-        return new mix.Stream(function (sink) {
-            schedule(function (done) {
-                rimraf(dir, function (error) {
-                    if (error) {
-                        console.log(error);
-                        sink.close();
-                        done();
-                    }
+        var signal = mixlib.signal();
 
-                    var stream = vfs.dest(dir);
-                    tree.nodes.map(nodeToVinyl).forEach(function (files) {
-                        files.forEach(function (file) {
-                            stream.write(file);
-                        });
+        schedule(function (done) {
+            rimraf(dir, function (error) {
+                if (error) {
+                    mixlib.logger.error('write', error);
+                    done();
+                }
+
+                var stream = vfs.dest(dir);
+                tree.nodes.map(nodeToVinyl).forEach(function (files) {
+                    files.forEach(function (file) {
+                        stream.write(file);
                     });
-                    stream.end();
-                    stream.on('finish', function () {
-                        sink.close(tree);
-                        done();
-                    });
-                    stream.on('error', function (error) {
-                        console.log(error);
-                        sink.close();
-                        done();
-                    });
+                });
+                stream.end();
+                stream.on('finish', function () {
+                    signal.push(tree);
+                    done();
+                });
+                stream.on('error', function (error) {
+                    mixlib.logger.error('write', error);
+                    done();
                 });
             });
         });
-    }
+
+        return signal;
+    };
 };

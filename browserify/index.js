@@ -1,198 +1,114 @@
 'use strict';
 
 var browserify = require('browserify');
-var mix = require('mix');
 var mixIn = require('mout/object/mixIn');
 var path = require('path');
-
-var SOURCEMAPPINGURL_PREFIX = '\n//# sourceMappingURL=data:application/json;base64,';
+var convertSourceMap = require('convert-source-map');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
-    var currentSink = null;
-    var pkgCache = {};
+    var watcher;
     var depCache = {};
-    var upToDate = {};
-    var changedNodes = {};
-    var changedEventSink = null;
-    var firstPush = true;
+    var idCache = {};
 
     options = options || {};
-
     var configure = options.configure || function () {};
     delete options.configure;
 
-    var bundleOptions = options.bundle || {};
-    delete options.bundle;
+    return function (tree) {
+        if (watcher !== undefined) {
+            watcher.close();
+        }
 
-    var changed = new mix.Stream(function (sink) {
-        changedEventSink = sink;
-    });
-
-    function processTree(tree) {
         if (tree.nodes.length !== 1) {
             throw new Error('Exactly one file must be specified for browserification');
         }
+
         var node = tree.nodes[0];
         var entrypoint = path.join(node.base, node.name);
-
+        var signal = mixlib.signal();
+        watcher = mixlib.watcher();
         delete depCache[entrypoint];
 
-        if (currentSink !== null) {
-            currentSink.close();
-            currentSink = null;
-        }
+        var bOpts = mixIn({}, options, {
+            basedir: node.base,
+            cache: depCache,
+            debug: true
+        });
 
-        return new mix.Stream(function (sink) {
-            currentSink = sink;
+        var b = browserify(bOpts);
 
-            var disposed = false;
-            var watcher = new mix.Watcher();
+        configure(b);
 
-            var b = browserify(mixIn({}, options, { basedir: node.base }));
+        var pushBundle = function () {
+            var start = new Date();
 
-            configure(b);
+            b.bundle(function (err, buf) {
+                if (err) { mixlib.logger.error('browserify', err.message); return; }
 
-            b.on('package', function (file, pkg) {
-                pkgCache[file] = pkg;
-            });
-            b.on('dep', function (dep) {
-                var node = tree.findNode(function (name, base) {
-                    return dep.id.indexOf(base) === 0;
+                resolveCachedDepsIds();
+
+                watcher.watch(Object.keys(depCache).map(function (depId) {
+                    return depCache[depId].file;
+                }));
+
+                var outputNode = tree.cloneNode(node);
+                var outputName = options.dest || node.name;
+                var outputPrefix = path.dirname(outputName) + '/';
+                if (outputPrefix === './') {
+                    outputPrefix = '';
+                }
+
+                var bundle = buf.toString('utf-8');
+
+                // Bundle
+                var outputBundle = convertSourceMap.removeComments(bundle);
+                outputNode.name = outputPrefix + path.basename(outputName, path.extname(outputName)) + '.js';
+                outputNode.metadata.mime = 'application/javascript';
+                outputNode.data = new Buffer(outputBundle, 'utf-8');
+
+                // Source map
+                var sourceMap = convertSourceMap.fromSource(bundle).toObject();
+                sourceMap.sources = sourceMap.sources.map(function (source) {
+                    return (source[0] === '/') ? path.relative(node.base, source) : source;
                 });
-                if (node !== null && !upToDate[dep.id]) {
-                    upToDate[dep.id] = true;
-                    var depNode = tree.cloneNode(node);
-                    depNode.name = path.relative(node.base, dep.id);
-                    depNode.data = new Buffer(dep.source, 'utf8');
-                    changedNodes[depNode.name] = depNode;
-                }
+                mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: outputPrefix });
 
-                depCache[dep.id] = dep;
-                if (dep.id !== entrypoint) {
-                    watcher.add(dep.id);
-                }
-            });
-            b.on('file', function (file) {
-                if (file !== entrypoint) {
-                    watcher.add(file);
-                }
-            });
-            b.on('bundle', function (bundle) {
-                bundle.on('transform', function (transform, mfile) {
-                    transform.on('file', function (file) {
-                        // TODO: handle file change
-                    });
-                });
-            });
+                mixlib.logger.log('browserify', 'Bundled ' + outputName, new Date() - start);
 
-            watcher.on('change', function (files) {
-                if (disposed) {
-                    return;
-                }
-
-                files.forEach(function (path) {
-                    delete depCache[path];
-                    delete upToDate[path];
-                    watcher.remove(path);
-                });
-                pushBundle();
+                signal.push(mixlib.tree([outputNode]));
             });
+        };
 
-            b.add(entrypoint);
+        var resolveCachedDepsIds = function (){
+            Object.keys(depCache).forEach(function (file) {
+                var dep = depCache[file];
+                dep.deps = Object.keys(dep.deps).reduce(function (acc, subdep) {
+                    acc[subdep] = idCache[dep.deps[subdep]];
+                    return acc;
+                }, {});
+            });
+        };
+
+        b.on('dep', function (dep) {
+            if (dep.file !== entrypoint) {
+                depCache[dep.file] = dep;
+                idCache[dep.id] = dep.file;
+            }
+        });
+
+        watcher.listen(function (paths) {
+            paths.forEach(function (path) {
+                delete depCache[path];
+            });
 
             pushBundle();
-
-            function pushBundle() {
-                var buffers = [];
-                var totalLength = 0;
-                var opts = mixIn({}, bundleOptions, {
-                    includePackage: true,
-                    packageCache: pkgCache,
-                    debug: true
-                });
-                if (!firstPush) {
-                    opts.cache = depCache;
-                }
-                var start = new Date();
-                var output = b.bundle(opts);
-                output.on('data', function (buffer) {
-                    buffers.push(buffer);
-                    totalLength += buffer.length;
-                });
-                output.on('error', function (error) {
-                    mix.error('browserify', error.message);
-                });
-                output.on('end', function () {
-                    if (disposed) {
-                        return;
-                    }
-
-                    mix.log('browserify', 'Bundled ' + node.name, new Date() - start);
-
-                    firstPush = false;
-
-                    var source = Buffer.concat(buffers).toString('utf8');
-                    var sourceMapData = null;
-                    var sourceMapUrlStart = source.lastIndexOf(SOURCEMAPPINGURL_PREFIX);
-                    if (sourceMapUrlStart !== -1) {
-                        var sourceMapUrlEnd = source.indexOf('\n', sourceMapUrlStart + SOURCEMAPPINGURL_PREFIX.length);
-                        if (sourceMapUrlEnd === -1) {
-                            sourceMapUrlEnd = source.length;
-                        }
-                        var originalSourceMap = JSON.parse(new Buffer(source.substring(sourceMapUrlStart + SOURCEMAPPINGURL_PREFIX.length, sourceMapUrlEnd), 'base64').toString('utf8'));
-                        var modifiedSourceMap = fixupSourceMap(originalSourceMap);
-                        sourceMapData = new Buffer(JSON.stringify(modifiedSourceMap), 'utf8');
-                        source = source.substring(0, sourceMapUrlStart) + source.substring(sourceMapUrlEnd);
-                    }
-
-                    var outputNode = tree.cloneNode(node);
-                    var outputPrefix = path.dirname(node.name) + '/';
-                    if (outputPrefix === './') {
-                        outputPrefix = '';
-                    }
-                    outputNode.name = outputPrefix + path.basename(node.name, path.extname(node.name)) + '.js';
-                    outputNode.metadata.mime = 'application/javascript';
-                    if (sourceMapData !== null) {
-                        source += '\n//# sourceMappingURL=./' + path.basename(outputNode.name) + '.map';
-                        outputNode.metadata.sourceMap = outputNode.siblings.length;
-                        outputNode.siblings.push({
-                            name: outputNode.name + '.map',
-                            data: sourceMapData,
-                            stat: node.stat
-                        });
-                    }
-                    outputNode.data = new Buffer(source, 'utf8');
-
-                    var outputTree = new mix.Tree([outputNode]);
-                    sink.push(outputTree);
-
-                    var nodes = [];
-                    Object.keys(changedNodes).forEach(function (name) {
-                        nodes.push(changedNodes[name]);
-                    });
-                    changedNodes = {};
-                    if (nodes.length > 0) {
-                        changedEventSink.push(new mix.Tree(nodes));
-                    }
-                });
-            }
-
-            function fixupSourceMap(sourceMap) {
-                var result = mixIn({}, sourceMap);
-                result.sources = sourceMap.sources.map(function (source) {
-                    return path.relative(node.base, source);
-                });
-                return result;
-            }
-
-            return function dispose() {
-                watcher.dispose();
-                disposed = true;
-            };
         });
-    }
 
-    Object.defineProperty(processTree, 'changed', { value: changed });
+        b.add(entrypoint);
 
-    return processTree;
+        pushBundle();
+
+        return signal;
+    };
 };

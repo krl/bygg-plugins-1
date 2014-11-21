@@ -1,21 +1,20 @@
 'use strict';
 
 var mime = require('mime');
-var mix = require('mix');
 var path = require('path');
 var vfs = require('vinyl-fs');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
-    var base = path.resolve(options.base);
+    options = (typeof options === 'string') ? { src: options } : options;
 
-    var src;
-    if (typeof options.src === 'string') {
-        src = [options.src];
-    } else {
-        src = options.src;
-    }
+    var src = (typeof options.src === 'string') ? [options.src] : options.src;
+    var base = options.base !== undefined ? path.resolve(options.base) : process.cwd();
 
-    function nodeFromVinyl(file) {
+    var watcher = mixlib.watcher();
+    var signal = mixlib.signal();
+
+    var nodeFromVinyl = function (file) {
         return {
             name: path.relative(base, file.path),
             base: base,
@@ -26,36 +25,27 @@ module.exports = function (options) {
             },
             siblings: []
         };
-    }
+    };
 
-    return new mix.Stream(function (sink) {
-        var watcher = new mix.Watcher();
-        watcher.on('change', pushNext);
+    var pushNext = function () {
+        var stream = vfs.src(src, { cwd: base });
+        var files = [];
 
-        pushNext();
+        stream.on('data', function (file) {
+            if (!file.isNull()) {
+                files.push(file);
+            }
+        });
 
-        function pushNext() {
-            readTree(sink.push);
-        }
+        stream.on('end', function () {
+            watcher.watch(files.map(function (file) { return file.path; }));
+            signal.push(mixlib.tree(files.map(nodeFromVinyl)));
+        });
+    };
 
-        function readTree(callback) {
-            var stream = vfs.src(src, {
-                cwd: base
-            });
-            var files = [];
-            stream.on('data', function (file) {
-                if (!file.isNull()) {
-                    watcher.add(file.path);
-                    files.push(file);
-                }
-            });
-            stream.on('end', function () {
-                callback(new mix.Tree(files.map(nodeFromVinyl)));
-            }.bind(this));
-        }
+    watcher.listen(pushNext);
 
-        return function dispose() {
-            watcher.dispose();
-        };
-    });
+    pushNext();
+
+    return signal;
 };
