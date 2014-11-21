@@ -27,7 +27,7 @@
     "jshint-stylish": "^1.0.0",
     "liftoff": "^0.13.6",
     "mime": "^1.2.11",
-    "mix": "git+ssh://git@bitbucket.org:soundrop/mix.git#0.2.0",
+    "mix": "git+ssh://git@bitbucket.org:soundrop/mix.git#master",
     "morgan": "^1.5.0",
     "mout": "^0.11.0",
     "node-notifier": "^4.0.2",
