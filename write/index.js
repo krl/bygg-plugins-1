@@ -4,7 +4,7 @@ var File = require('vinyl');
 var path = require('path');
 var rimraf = require('rimraf');
 var vfs = require('vinyl-fs');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (dir) {
     var pending = [];

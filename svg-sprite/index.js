@@ -1,7 +1,7 @@
 'use strict';
 
 var path = require('path');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 var SVG_WRAPPER = '<svg xmlns="http://www.w3.org/2000/svg">#shapes#</svg>';
 

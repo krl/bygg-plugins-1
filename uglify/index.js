@@ -4,7 +4,7 @@ var UglifyJS = require('uglify-js');
 var mixIn = require('mout/object/mixIn');
 var path = require('path');
 var fs = require('fs');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = mixIn({

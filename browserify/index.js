@@ -4,7 +4,7 @@ var browserify = require('browserify');
 var mixIn = require('mout/object/mixIn');
 var path = require('path');
 var convertSourceMap = require('convert-source-map');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     var watcher;

@@ -6,7 +6,7 @@ var jshintCli = require('jshint/src/cli');
 var jshintStylish = require(require('jshint-stylish'));
 var mixIn = require('mout/object/mixIn');
 var path = require('path');
-var mix = require('../lib');
+var mix = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};

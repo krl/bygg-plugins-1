@@ -2,7 +2,7 @@
 
 var autoprefixer = require('autoprefixer-core');
 var path = require('path');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 var DEFAULT_CONSTRAINTS = ['last 2 versions', 'ie 9'];
 

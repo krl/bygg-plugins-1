@@ -2,7 +2,7 @@
 
 var Imagemin = require('imagemin');
 var pluck = require('mout/collection/pluck');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};

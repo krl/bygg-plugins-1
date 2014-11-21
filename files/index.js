@@ -3,7 +3,7 @@
 var mime = require('mime');
 var path = require('path');
 var vfs = require('vinyl-fs');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = (typeof options === 'string') ? { src: options } : options;

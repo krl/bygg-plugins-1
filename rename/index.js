@@ -1,6 +1,6 @@
 'use strict';
 
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (from, to) {
     return function (tree) {

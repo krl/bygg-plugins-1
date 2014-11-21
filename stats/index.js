@@ -5,7 +5,7 @@ var chalk = require('chalk');
 var gzipSize = require('gzip-size');
 var mixIn = require('mout/object/mixIn');
 var prettyBytes = require('pretty-bytes');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = mixIn({

@@ -7,7 +7,7 @@ var morgan = require('morgan');
 var parseurl = require('parseurl');
 var tinylr = require('tiny-lr');
 var chalk = require('chalk');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 var LIVERELOAD_PORT = 35729;
 

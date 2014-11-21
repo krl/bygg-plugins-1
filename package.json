@@ -1,6 +1,6 @@
 {
-  "name": "mix",
-  "description": "Streaming build system",
+  "name": "mix-plugins",
+  "description": "Collection of plugins for the mix build system",
   "version": "0.2.0",
   "author": {
     "name": "Ole André Vadla Ravnås",
@@ -10,7 +10,7 @@
   "private": true,
   "repository": {
     "type": "git",
-    "url": "git://github.com/soundrop/mix"
+    "url": "git+ssh://git@bitbucket.org:soundrop/mix-plugins.git"
   },
   "dependencies": {
     "autoprefixer-core": "^4.0.0",
@@ -27,6 +27,7 @@
     "jshint-stylish": "^1.0.0",
     "liftoff": "^0.13.6",
     "mime": "^1.2.11",
+    "mix": "git+ssh://git@bitbucket.org:soundrop/mix.git#0.2.0",
     "morgan": "^1.5.0",
     "mout": "^0.11.0",
     "node-notifier": "^4.0.2",
@@ -44,6 +45,5 @@
   },
   "engines": {
     "node": ">= 0.10"
-  },
-  "main": "index.js"
+  }
 }

@@ -2,7 +2,7 @@
 
 var csswring = require('csswring');
 var path = require('path');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     return function (tree) {

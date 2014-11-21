@@ -2,7 +2,7 @@
 
 var crypto = require('crypto');
 var path = require('path');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};

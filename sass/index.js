@@ -4,7 +4,7 @@ var mixIn = require('mout/object/mixIn');
 var path = require('path');
 var sass = require('node-sass');
 var fs = require('fs');
-var mixlib = require('../lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     var watcher;
