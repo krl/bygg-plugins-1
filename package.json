@@ -1,7 +1,7 @@
 {
   "name": "mix-plugins",
   "description": "Collection of plugins for the mix build system",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "author": {
     "name": "Ole André Vadla Ravnås",
     "email": "ole.andre.ravnas@soundrop.com",
@@ -23,6 +23,7 @@
     "imagemin": "^3.0.0",
     "jshint": "^2.5.10",
     "jshint-stylish": "^1.0.0",
+    "minimatch": "^1.0.0",
     "morgan": "^1.5.0",
     "mout": "^0.11.0",
     "node-sass": "^1.2.2",
