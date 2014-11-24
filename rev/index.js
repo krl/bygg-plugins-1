@@ -2,47 +2,63 @@
 
 var crypto = require('crypto');
 var path = require('path');
+var minimatch = require('minimatch');
 var mixlib = require('mix/lib');
+
+var PATH_REGEX = /(?:\'|\"|\(|(?:\/\/|\/*)# sourceMappingURL=)([a-z0-9_@\-\/\.]{2,})/ig;
 
 module.exports = function (options) {
     options = options || {};
 
-    // TODO: allow globs
     var entrypoint = options.entrypoint || 'index.html';
-    if (typeof entrypoint === 'string') {
-        entrypoint = [entrypoint];
-    }
 
     return function (tree) {
         var deps = resolveDependencies(tree.nodes);
+        var stats = {
+            processed: 0,
+            revved: 0,
+            references: 0
+        };
 
-        var nodeMap = deps.reduce(function (nodeMap, dep) {
+        var revMap = deps.reduce(function (acc, dep) {
             var data;
             if (Object.keys(dep.refs).length > 0) {
+                stats.processed++;
                 var contents = dep.node.data.toString('utf8');
                 Object.keys(dep.refs).forEach(function (reference) {
+                    stats.references++;
                     var referencedNode = dep.refs[reference];
-                    contents = contents.replace(new RegExp(reference, 'g'), replacement(reference, nodeMap[referencedNode.name]));
+                    contents = contents.replace(new RegExp(reference, 'g'), replacement(reference, acc[referencedNode.name]));
                 });
                 data = new Buffer(contents, 'utf8');
             } else {
                 data = dep.node.data;
             }
+
             var name = dep.node.name;
-            var revision = md5(data).substr(0, 8);
-            var extension = path.extname(name);
-            var revName = (entrypoint.indexOf(name) === -1) ? joinPath(dirName(name), path.basename(name, extension) + '-' + revision + extension) : name;
+            var revName;
+            // Do not rev entrypoints
+            if (minimatch(name, entrypoint)) {
+                revName = name;
+            } else {
+                stats.revved++;
+                var revision = md5(data).substr(0, 8);
+                var extension = path.extname(name);
+                revName = joinPath(dirName(name), path.basename(name, extension) + '-' + revision + extension);
+            }
+
             var revNode = dep.siblingOf === null ? tree.cloneNode(dep.node) : tree.cloneSibling(dep.node, dep.siblingOf);
             revNode.name = revName;
             revNode.data = data;
-            nodeMap[name] = revNode;
-            return nodeMap;
+            acc[name] = revNode;
+
+            return acc;
         }, {});
 
         var nodes = deps.reduce(function (nodes, dep) {
-            var revNode = nodeMap[dep.node.name];
+            var revNode = revMap[dep.node.name];
             if (dep.siblingOf) {
-                var toplevel = nodeMap[dep.siblingOf.name];
+                var toplevel = revMap[dep.siblingOf.name];
                 toplevel.siblings = toplevel.siblings.map(function (sibling) {
                     if (sibling === dep.node) {
                         return revNode;
@@ -57,6 +73,8 @@ module.exports = function (options) {
         }, []);
 
         nodes.reverse();
+
+        mixlib.logger.log('rev', 'Revved ' + stats.revved + ' files referenced ' + stats.references + ' times in ' + stats.processed + ' files');
 
         return mixlib.tree(nodes);
     };
@@ -83,31 +101,32 @@ function resolveDependencies(nodes, nodeMap, stack) {
 
     stack = stack || [];
 
-    forEachNode.call(nodes, function (node) {
-        if (stack.indexOf(node) !== -1) {
-            return;
-        }
+    forEachNode(nodes, function (node) {
+        // Process each node only once
+        if (stack.indexOf(node) !== -1) { return; }
         stack.push(node);
 
         var refs = {};
         var siblingOf = nodeMap[node.name].siblingOf;
+
         if (siblingOf === null && !isBinary(node)) {
             var contents = node.data.toString('utf8');
-            var filepathRegex = /(?:\'|\"|\(|(?:\/\/|\/*)# sourceMappingURL=)([a-z0-9_@\-\/\.]{2,})/ig;
             var match;
-            while ((match = filepathRegex.exec(contents))) {
+            while ((match = PATH_REGEX.exec(contents))) {
                 var reference = match[1];
 
-                var referencedPath;
+                var path;
                 if (reference.indexOf('/') === 0) {
-                    referencedPath = reference.substr(1);
+                    path = reference.substr(1);
                 } else {
-                    referencedPath = joinPath(dirName(node.name), reference);
+                    path = joinPath(dirName(node.name), reference);
                 }
-                var referencedEntry = nodeMap.hasOwnProperty(referencedPath) ? nodeMap[referencedPath] : null;
-                if (referencedEntry !== null) {
-                    refs[reference] = referencedEntry.node;
-                    Array.prototype.push.apply(deps, resolveDependencies([referencedEntry.node], nodeMap, stack));
+
+                if (nodeMap.hasOwnProperty(path)) {
+                    var entry = nodeMap[path];
+                    refs[reference] = entry.node;
+                    var subDeps = resolveDependencies([entry.node], nodeMap, stack);
+                    Array.prototype.push.apply(deps, subDeps);
                 }
             }
         }
@@ -126,10 +145,10 @@ function replacement(reference, referencedNode) {
     return joinPath(dirName(reference), path.basename(referencedNode.name));
 }
 
-function forEachNode(callback) {
-    Array.prototype.forEach.call(this, function (node) {
+function forEachNode(nodes, callback) {
+    nodes.forEach(function (node) {
         callback(node, null);
-        if (node.siblings) {
+        if (node.siblings !== undefined) {
             node.siblings.forEach(function (sibling) {
                 callback(sibling, node);
             });
