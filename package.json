@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+ssh://git@bitbucket.org:soundrop/mix-plugins.git"
+    "url": "https://bitbucket.org/soundrop/mix-plugins.git"
   },
   "dependencies": {
     "autoprefixer-core": "^4.0.0",
