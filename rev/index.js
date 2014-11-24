@@ -112,6 +112,7 @@ function resolveDependencies(nodes, nodeMap, stack) {
         if (siblingOf === null && !isBinary(node)) {
             var contents = node.data.toString('utf8');
             var match;
+            PATH_REGEX.lastIndex = 0;
             while ((match = PATH_REGEX.exec(contents))) {
                 var reference = match[1];
 
