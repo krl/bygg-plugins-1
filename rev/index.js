@@ -11,9 +11,10 @@ module.exports = function (options) {
     options = options || {};
 
     var entrypoint = options.entrypoint || 'index.html';
+    var pathPrefix = options.pathPrefix ? new RegExp(options.pathPrefix, 'g') : undefined;
 
     return function (tree) {
-        var deps = resolveDependencies(tree.nodes);
+        var deps = resolveDependencies(tree.nodes, pathPrefix);
         var stats = {
             processed: 0,
             revved: 0,
@@ -80,7 +81,7 @@ module.exports = function (options) {
     };
 };
 
-function resolveDependencies(nodes, nodeMap, stack) {
+function resolveDependencies(nodes, pathPrefix, nodeMap, stack) {
     var deps = [];
 
     if (typeof nodeMap === 'undefined') {
@@ -111,6 +112,10 @@ function resolveDependencies(nodes, nodeMap, stack) {
 
         if (siblingOf === null && !isBinary(node)) {
             var contents = node.data.toString('utf8');
+            if (pathPrefix !== undefined) {
+                contents = contents.replace(pathPrefix, '');
+            }
+
             var match;
             PATH_REGEX.lastIndex = 0;
             while ((match = PATH_REGEX.exec(contents))) {
@@ -126,7 +131,7 @@ function resolveDependencies(nodes, nodeMap, stack) {
                 if (nodeMap.hasOwnProperty(path)) {
                     var entry = nodeMap[path];
                     refs[reference] = entry.node;
-                    var subDeps = resolveDependencies([entry.node], nodeMap, stack);
+                    var subDeps = resolveDependencies([entry.node], pathPrefix, nodeMap, stack);
                     Array.prototype.push.apply(deps, subDeps);
                 }
             }
