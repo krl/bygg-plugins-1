@@ -3,12 +3,12 @@
 // Based on gulp-size by @sindresorhus
 var chalk = require('chalk');
 var gzipSize = require('gzip-size');
-var mixIn = require('mout/object/mixIn');
+var extend = require('extend');
 var prettyBytes = require('pretty-bytes');
 var mixlib = require('mix/lib');
 
 module.exports = function (options) {
-    options = mixIn({
+    options = extend({
         showFiles: true
     }, options || {});
 

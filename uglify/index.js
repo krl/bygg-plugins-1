@@ -1,13 +1,13 @@
 'use strict';
 
 var UglifyJS = require('uglify-js');
-var mixIn = require('mout/object/mixIn');
+var extend = require('extend');
 var path = require('path');
 var fs = require('fs');
 var mixlib = require('mix/lib');
 
 module.exports = function (options) {
-    options = mixIn({
+    options = extend({
         screw_ie8: true,
         warnings: false,
         compress: {},
@@ -51,7 +51,7 @@ module.exports = function (options) {
                 orig: prevSourceMap !== undefined ? prevSourceMap : false,
                 root: options.sourceRoot
             });
-            var outputOptions = mixIn({}, options.output, {
+            var outputOptions = extend({}, options.output, {
                 source_map: sourceMap
             });
 

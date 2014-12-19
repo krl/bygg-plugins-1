@@ -1,6 +1,6 @@
 'use strict';
 
-var mixIn = require('mout/object/mixIn');
+var extend = require('extend');
 var path = require('path');
 var sass = require('node-sass');
 var fs = require('fs');
@@ -28,7 +28,7 @@ module.exports = function (options) {
             var stats = {};
             var start = new Date();
 
-            sass.render(mixIn({}, options, {
+            sass.render(extend({}, options, {
                 file: sassFile,
                 stats: stats,
                 sourceMap: '_.map',

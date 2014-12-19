@@ -4,7 +4,7 @@ var RcLoader = require('rcloader');
 var jshint = require('jshint').JSHINT;
 var jshintCli = require('jshint/src/cli');
 var jshintStylish = require(require('jshint-stylish'));
-var mixIn = require('mout/object/mixIn');
+var extend = require('extend');
 var path = require('path');
 var mix = require('mix/lib');
 
@@ -40,11 +40,11 @@ module.exports = function (options) {
                                 var options = config.overrides[pattern];
 
                                 if (options.globals) {
-                                    mixIn(globals, options.globals);
+                                    extend(globals, options.globals);
                                     delete options.globals;
                                 }
 
-                                mixIn(config, options);
+                                extend(config, options);
                             }
                         });
                         delete config.overrides;

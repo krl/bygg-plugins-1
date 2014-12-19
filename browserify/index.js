@@ -1,7 +1,7 @@
 'use strict';
 
 var browserify = require('browserify');
-var mixIn = require('mout/object/mixIn');
+var extend = require('extend');
 var path = require('path');
 var convertSourceMap = require('convert-source-map');
 var mixlib = require('mix/lib');
@@ -30,7 +30,7 @@ module.exports = function (options) {
         watcher = mixlib.watcher();
         delete depCache[entrypoint];
 
-        var bOpts = mixIn({}, options, {
+        var bOpts = extend({}, options, {
             basedir: node.base,
             cache: depCache,
             debug: true
