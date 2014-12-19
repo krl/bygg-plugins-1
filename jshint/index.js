@@ -5,8 +5,9 @@ var jshint = require('jshint').JSHINT;
 var jshintCli = require('jshint/src/cli');
 var jshintStylish = require(require('jshint-stylish'));
 var extend = require('extend');
+var minimatch = require('minimatch');
 var path = require('path');
-var mix = require('mix/lib');
+var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};
