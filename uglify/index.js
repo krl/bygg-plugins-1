@@ -36,7 +36,7 @@ module.exports = function (options) {
 
             if (options.compress) {
                 ast.figure_out_scope(scopeOptions);
-                var compressOptions = mixIn({ warnings: options.warnings }, options.compress);
+                var compressOptions = extend({ warnings: options.warnings }, options.compress);
                 ast = ast.transform(UglifyJS.Compressor(compressOptions));
             }
 
