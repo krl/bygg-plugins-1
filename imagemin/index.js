@@ -7,7 +7,7 @@ module.exports = function (options) {
     options = options || {};
 
     return function (tree) {
-        var signal = mixlib.signal();
+        var output = mixlib.signal();
         var nodes = [];
         var processed = 0;
 
@@ -32,11 +32,11 @@ module.exports = function (options) {
 
                     if (processed === tree.nodes.length) {
                         mixlib.logger.log('imagemin', 'Minified ' + tree.nodes.length + ' images');
-                        signal.push(mixlib.tree(nodes));
+                        output.push(mixlib.tree(nodes));
                     }
                 });
         });
 
-        return signal;
+        return output;
     };
 };

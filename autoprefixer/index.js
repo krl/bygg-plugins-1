@@ -24,8 +24,9 @@ module.exports = function () {
                 }
             };
 
+            var outputNode;
             try {
-                var outputNode = tree.cloneNode(node);
+                outputNode = tree.cloneNode(node);
                 var result = autoprefixer({ browsers: constraints }).process(input, opts);
                 outputNode.data = new Buffer(result.css, 'utf8');
 
@@ -33,18 +34,16 @@ module.exports = function () {
                 mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
 
                 mixlib.logger.log('autoprefixer', 'Prefixed ' + node.name, new Date() - start);
-
-                return outputNode;
             } catch (e) {
                 mixlib.logger.error('autoprefixer', e.message);
+                outputNode = undefined;
             }
-
-            return undefined;
+            return outputNode;
         })
         .filter(function (node) {
             return node !== undefined;
         });
 
-        return mixlib.tree(nodes);
+        return mixlib.signal.constant(nodes.length > 0 ? mixlib.tree(nodes) : undefined);
     };
 };

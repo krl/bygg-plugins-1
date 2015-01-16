@@ -36,7 +36,7 @@ module.exports = function (options) {
 
         mixlib.logger.log('svg-sprite', 'Combined ' + tree.nodes.length + ' symbols into ' + fileName);
 
-        return mixlib.tree([{
+        var outputNode = {
             base: path.dirname(fileName),
             name: fileName,
             data: new Buffer(sprite, 'utf8'),
@@ -44,6 +44,8 @@ module.exports = function (options) {
                 mime: 'image/svg+xml'
             },
             siblings: []
-        }]);
+        };
+
+        return mixlib.signal.constant(mixlib.tree([outputNode]));
     };
 };

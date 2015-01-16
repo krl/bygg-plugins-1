@@ -77,7 +77,7 @@ module.exports = function (options) {
 
         mixlib.logger.log('rev', 'Revved ' + stats.revved + ' files referenced ' + stats.references + ' times in ' + stats.processed + ' files');
 
-        return mixlib.tree(nodes);
+        return mixlib.signal.constant(mixlib.tree(nodes));
     };
 };
 

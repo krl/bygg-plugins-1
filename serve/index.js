@@ -81,6 +81,6 @@ module.exports = function (port, behavior) {
 
         mixlib.logger.log('serve', message);
 
-        return tree;
+        return mixlib.signal.constant(mixlib.signal(tree));
     };
 };

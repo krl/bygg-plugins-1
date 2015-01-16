@@ -25,6 +25,6 @@ module.exports = function (from, to) {
             return outputNode;
         });
 
-        return new mixlib.tree(nodes);
+        return mixlib.signal.constant(mixlib.tree(nodes));
     };
 };

@@ -26,7 +26,7 @@ module.exports = function (options) {
 
         var node = tree.nodes[0];
         var entrypoint = path.join(node.base, node.name);
-        var signal = mixlib.signal();
+        var output = mixlib.signal();
         watcher = mixlib.watcher();
         delete depCache[entrypoint];
 
@@ -76,7 +76,7 @@ module.exports = function (options) {
 
                 mixlib.logger.log('browserify', 'Bundled ' + outputName, new Date() - start);
 
-                signal.push(mixlib.tree([outputNode]));
+                output.push(mixlib.tree([outputNode]));
             });
         };
 
@@ -109,6 +109,6 @@ module.exports = function (options) {
 
         pushBundle();
 
-        return signal;
+        return output;
     };
 };

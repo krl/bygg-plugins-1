@@ -70,6 +70,6 @@ module.exports = function (options) {
             return outputNode;
         });
 
-        return mixlib.tree(nodes);
+        return mixlib.signal.constant(mixlib.tree(nodes));
     };
 };

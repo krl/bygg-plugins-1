@@ -73,6 +73,6 @@ module.exports = function (options) {
             });
         });
 
-        return tree;
+        return mixlib.signal.constant(tree);
     };
 };

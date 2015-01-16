@@ -6,6 +6,8 @@ var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     return function (tree) {
+        var output = mixlib.signal();
+
         var nodes = tree.nodes.map(function (node) {
             var start = new Date();
             var input = node.data.toString('utf8');
@@ -20,6 +22,7 @@ module.exports = function (options) {
                 }
             };
 
+            var outputNode;
             try {
                 var outputNode = tree.cloneNode(node);
                 var result = csswring(options).wring(input, opts);
@@ -32,14 +35,14 @@ module.exports = function (options) {
                 return outputNode;
             } catch (e) {
                 mixlib.logger.error('csswring', e.message);
+                outputNode = undefined;
             }
-
-            return undefined;
+            return outputNode;
         })
         .filter(function (node) {
             return node !== undefined;
         });
 
-        return mixlib.tree(nodes);
+        return mixlib.signal.constant(nodes.length > 0 ? mixlib.tree(nodes) : undefined);
     };
 };

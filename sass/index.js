@@ -19,7 +19,7 @@ module.exports = function (options) {
         }
 
         var node = tree.nodes[0];
-        var signal = mixlib.signal();
+        var output = mixlib.signal();
         watcher = mixlib.watcher();
         var deps = [];
 
@@ -53,7 +53,7 @@ module.exports = function (options) {
 
                     mixlib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
 
-                    signal.push(mixlib.tree([outputNode]));
+                    output.push(mixlib.tree([outputNode]));
                 },
                 error: function (error) {
                     mixlib.logger.error('sass', error);
@@ -67,6 +67,6 @@ module.exports = function (options) {
 
         pushCss();
 
-        return signal;
+        return output;
     };
 };
