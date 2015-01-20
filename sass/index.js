@@ -7,20 +7,14 @@ var fs = require('fs');
 var mixlib = require('mix/lib');
 
 module.exports = function (options) {
-    var watcher;
-
     return function (tree) {
-        if (watcher !== undefined) {
-            watcher.close();
-        }
-
         if (tree.nodes.length !== 1) {
             throw new Error('Exactly one scss file must be specified');
         }
 
         var node = tree.nodes[0];
         var output = mixlib.signal();
-        watcher = mixlib.watcher();
+        var watcher = mixlib.watcher();
         var deps = [];
 
         var pushCss = function () {

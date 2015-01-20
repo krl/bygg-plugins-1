@@ -1,25 +1,20 @@
 'use strict';
 
 var browserify = require('browserify');
+var fs = require('fs');
 var extend = require('extend');
 var path = require('path');
 var convertSourceMap = require('convert-source-map');
 var mixlib = require('mix/lib');
 
 module.exports = function (options) {
-    var watcher;
-    var depCache = {};
-    var idCache = {};
-
     options = options || {};
     var configure = options.configure || function () {};
     delete options.configure;
 
-    return function (tree) {
-        if (watcher !== undefined) {
-            watcher.close();
-        }
+    var cache = {};
 
+    return function (tree) {
         if (tree.nodes.length !== 1) {
             throw new Error('Exactly one file must be specified for browserification');
         }
@@ -27,13 +22,14 @@ module.exports = function (options) {
         var node = tree.nodes[0];
         var entrypoint = path.join(node.base, node.name);
         var output = mixlib.signal();
-        watcher = mixlib.watcher();
-        delete depCache[entrypoint];
+        var watched = [];
+        var watcher = mixlib.watcher();
 
         var bOpts = extend({}, options, {
             basedir: node.base,
-            cache: depCache,
-            debug: true
+            cache: cache,
+            debug: true,
+            fullPaths: true
         });
 
         var b = browserify(bOpts);
@@ -43,14 +39,12 @@ module.exports = function (options) {
         var pushBundle = function () {
             var start = new Date();
 
+            watched = [];
+
             b.bundle(function (err, buf) {
                 if (err) { mixlib.logger.error('browserify', err.message); return; }
 
-                resolveCachedDepsIds();
-
-                watcher.watch(Object.keys(depCache).map(function (depId) {
-                    return depCache[depId].file;
-                }));
+                watcher.watch(watched);
 
                 var outputNode = tree.cloneNode(node);
                 var outputName = options.dest || node.name;
@@ -80,28 +74,33 @@ module.exports = function (options) {
             });
         };
 
-        var resolveCachedDepsIds = function (){
-            Object.keys(depCache).forEach(function (file) {
-                var dep = depCache[file];
-                dep.deps = Object.keys(dep.deps).reduce(function (acc, subdep) {
-                    acc[subdep] = idCache[dep.deps[subdep]];
-                    return acc;
-                }, {});
-            });
-        };
-
         b.on('dep', function (dep) {
-            if (dep.file !== entrypoint) {
-                depCache[dep.file] = dep;
-                idCache[dep.id] = dep.file;
+            if (typeof dep.id === 'string') {
+                cache[dep.id] = dep;
+            }
+            if (typeof dep.file === 'string') {
+                watch(dep.file);
             }
         });
 
+        b.on('file', function (file) {
+            watch(file);
+        });
+
+        b.on('package', function (pkg) {
+            watch(path.join(pkg.__dirname, 'package.json'));
+        });
+
+        var watch = function (path) {
+            if (watched.indexOf(path) === -1 && path !== entrypoint) {
+                watched.push(path);
+            }
+        };
+
         watcher.listen(function (paths) {
             paths.forEach(function (path) {
-                delete depCache[path];
+                delete cache[path];
             });
-
             pushBundle();
         });
 
