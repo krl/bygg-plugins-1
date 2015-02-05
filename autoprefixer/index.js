@@ -26,12 +26,12 @@ module.exports = function () {
 
             var outputNode;
             try {
-                outputNode = tree.cloneNode(node);
+                outputNode = mixlib.tree.cloneNode(node);
                 var result = autoprefixer({ browsers: constraints }).process(input, opts);
                 outputNode.data = new Buffer(result.css, 'utf8');
 
                 var sourceMap = JSON.parse(result.map);
-                mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
+                outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
 
                 mixlib.logger.log('autoprefixer', 'Prefixed ' + node.name, new Date() - start);
             } catch (e) {

@@ -7,9 +7,8 @@ module.exports = function () {
         var counter = 0;
 
         var nodes = tree.nodes.map(function (node) {
-            var outputNode = tree.cloneNode(node);
-            var hadMap = mixlib.tree.sourceMap.unset(outputNode);
-            if (hadMap) {
+            var outputNode = mixlib.tree.sourceMap.unset(node);
+            if (outputNode !== node) {
                 counter++;
             }
             return outputNode;

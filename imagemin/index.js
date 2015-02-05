@@ -25,7 +25,7 @@ module.exports = function (options) {
                         return;
                     }
 
-                    var outputNode = tree.cloneNode(node);
+                    var outputNode = mixlib.tree.cloneNode(node);
                     outputNode.data = result[0].contents;
                     nodes.push(outputNode);
                     processed++;

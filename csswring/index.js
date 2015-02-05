@@ -24,12 +24,12 @@ module.exports = function (options) {
 
             var outputNode;
             try {
-                var outputNode = tree.cloneNode(node);
+                outputNode = mixlib.tree.cloneNode(node);
                 var result = csswring(options).wring(input, opts);
                 outputNode.data = new Buffer(result.css, 'utf8');
 
                 var sourceMap = JSON.parse(result.map);
-                mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
+                outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
 
                 mixlib.logger.log('csswring', 'Minified ' + node.name, new Date() - start);
                 return outputNode;

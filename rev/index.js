@@ -48,7 +48,7 @@ module.exports = function (options) {
                 revName = joinPath(dirName(name), path.basename(name, extension) + '-' + revision + extension);
             }
 
-            var revNode = dep.siblingOf === null ? tree.cloneNode(dep.node) : tree.cloneSibling(dep.node, dep.siblingOf);
+            var revNode = dep.siblingOf === null ? mixlib.tree.cloneNode(dep.node) : mixlib.tree.cloneSibling(dep.node, dep.siblingOf);
             revNode.name = revName;
             revNode.data = data;
             acc[name] = revNode;

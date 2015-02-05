@@ -56,11 +56,11 @@ module.exports = function (options) {
             });
 
             var outputSource = ast.print_to_string(outputOptions);
-            var outputNode = tree.cloneNode(node);
+            var outputNode = mixlib.tree.cloneNode(node);
             outputNode.data = new Buffer(outputSource, 'utf8');
 
             var sourceMapData = JSON.parse(sourceMap.toString());
-            mixlib.tree.sourceMap.set(outputNode, sourceMapData, {
+            outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMapData, {
                 annotate: true,
                 sourceBase: prevSourceMap === undefined ? path.dirname(node.name) : undefined
             });

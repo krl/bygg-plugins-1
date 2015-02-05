@@ -33,7 +33,7 @@ module.exports = function (options) {
                     });
                     watcher.watch(deps);
 
-                    var outputNode = tree.cloneNode(node);
+                    var outputNode = mixlib.tree.cloneNode(node);
                     var outputPrefix = path.dirname(node.name) + '/';
                     if (outputPrefix === './') {
                         outputPrefix = '';
@@ -43,7 +43,7 @@ module.exports = function (options) {
                     outputNode.data = new Buffer(css, 'utf8');
 
                     var sourceMap = JSON.parse(stats.sourceMap);
-                    mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
+                    outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
 
                     mixlib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
 

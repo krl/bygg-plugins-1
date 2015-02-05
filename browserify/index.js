@@ -46,7 +46,7 @@ module.exports = function (options) {
 
                 watcher.watch(watched);
 
-                var outputNode = tree.cloneNode(node);
+                var outputNode = mixlib.tree.cloneNode(node);
                 var outputName = options.dest || node.name;
                 var outputPrefix = path.dirname(outputName) + '/';
                 if (outputPrefix === './') {
@@ -66,7 +66,7 @@ module.exports = function (options) {
                 sourceMap.sources = sourceMap.sources.map(function (source) {
                     return (source[0] === '/') ? path.relative(node.base, source) : source;
                 });
-                mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: outputPrefix });
+                outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: outputPrefix });
 
                 mixlib.logger.log('browserify', 'Bundled ' + outputName, new Date() - start);
 
