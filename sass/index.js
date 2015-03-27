@@ -19,16 +19,15 @@ module.exports = function (options) {
 
         var pushCss = function () {
             var sassFile = path.join(node.base, node.name);
-            var stats = {};
             var start = new Date();
 
             sass.render(extend({}, options, {
                 file: sassFile,
-                stats: stats,
                 sourceMap: '_.map',
                 omitSourceMapUrl: true,
-                success: function (css) {
-                    deps = stats.includedFiles.filter(function (path) {
+                sourceMapContents: true,
+                success: function (result) {
+                    deps = result.stats.includedFiles.filter(function (path) {
                         return path !== sassFile;
                     });
                     watcher.watch(deps);
@@ -40,9 +39,9 @@ module.exports = function (options) {
                     }
                     outputNode.name = outputPrefix + path.basename(node.name, path.extname(node.name)) + '.css';
                     outputNode.metadata.mime = 'text/css';
-                    outputNode.data = new Buffer(css, 'utf8');
+                    outputNode.data = new Buffer(result.css, 'utf8');
 
-                    var sourceMap = JSON.parse(stats.sourceMap);
+                    var sourceMap = JSON.parse(result.map);
                     outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
 
                     mixlib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
