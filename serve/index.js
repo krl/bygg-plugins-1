@@ -38,10 +38,13 @@ module.exports = function (port, behavior) {
             var node = currentTree.findNodeByName(name);
             if (node !== null && (req.method === 'GET' || req.method === 'HEAD')) {
                 var data = node.data;
-                res.writeHead(200, {
+                var headers = {
                     'Content-Length': data.length,
-                    'Content-Type': node.metadata.mime
-                });
+                };
+                if (node.metadata.mime) {
+                    headers['Content-Type'] = node.metadata.mime;
+                }
+                res.writeHead(200, headers);
                 if (req.method === 'GET') {
                     res.end(data);
                 } else {
