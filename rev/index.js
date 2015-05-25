@@ -1,9 +1,9 @@
 'use strict';
 
+var bygglib = require('bygg/lib');
 var crypto = require('crypto');
-var path = require('path');
 var minimatch = require('minimatch');
-var mixlib = require('mix/lib');
+var path = require('path');
 
 var PATH_REGEX = /(?:\'|\"|\(|(?:\/\/|\/*)# sourceMappingURL=)([a-z0-9_@\-\/\.]{2,})/ig;
 
@@ -48,7 +48,7 @@ module.exports = function (options) {
                 revName = joinPath(dirName(name), path.basename(name, extension) + '-' + revision + extension);
             }
 
-            var revNode = dep.siblingOf === null ? mixlib.tree.cloneNode(dep.node) : mixlib.tree.cloneSibling(dep.node, dep.siblingOf);
+            var revNode = dep.siblingOf === null ? bygglib.tree.cloneNode(dep.node) : bygglib.tree.cloneSibling(dep.node, dep.siblingOf);
             revNode.name = revName;
             revNode.data = data;
             acc[name] = revNode;
@@ -75,9 +75,9 @@ module.exports = function (options) {
 
         nodes.reverse();
 
-        mixlib.logger.log('rev', 'Revved ' + stats.revved + ' files referenced ' + stats.references + ' times in ' + stats.processed + ' files');
+        bygglib.logger.log('rev', 'Revved ' + stats.revved + ' files referenced ' + stats.references + ' times in ' + stats.processed + ' files');
 
-        return mixlib.signal.constant(mixlib.tree(nodes));
+        return bygglib.signal.constant(bygglib.tree(nodes));
     };
 };
 

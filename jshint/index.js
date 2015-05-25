@@ -1,13 +1,13 @@
 'use strict';
 
-var RcLoader = require('rcloader');
+var bygglib = require('bygg/lib');
 var jshint = require('jshint').JSHINT;
 var jshintCli = require('jshint/src/cli');
 var jshintStylish = require(require('jshint-stylish'));
 var extend = require('extend');
 var minimatch = require('minimatch');
 var path = require('path');
-var mixlib = require('mix/lib');
+var RcLoader = require('rcloader');
 
 module.exports = function (options) {
     options = options || {};
@@ -67,12 +67,12 @@ module.exports = function (options) {
                 }
 
                 if (--remaining === 0) {
-                    mixlib.logger.log('jshint', '');
+                    bygglib.logger.log('jshint', '');
                     jshintStylish.reporter(result, {});
                 }
             });
         });
 
-        return mixlib.signal.constant(tree);
+        return bygglib.signal.constant(tree);
     };
 };

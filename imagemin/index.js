@@ -1,13 +1,13 @@
 'use strict';
 
+var bygglib = require('bygg/lib');
 var Imagemin = require('imagemin');
-var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};
 
     return function (tree) {
-        var output = mixlib.signal();
+        var output = bygglib.signal();
         var nodes = [];
         var processed = 0;
 
@@ -21,18 +21,18 @@ module.exports = function (options) {
                 .run(function(err, result) {
                     if (err) {
                         processed++;
-                        mixlib.logger.error('imagemin', err);
+                        bygglib.logger.error('imagemin', err);
                         return;
                     }
 
-                    var outputNode = mixlib.tree.cloneNode(node);
+                    var outputNode = bygglib.tree.cloneNode(node);
                     outputNode.data = result[0].contents;
                     nodes.push(outputNode);
                     processed++;
 
                     if (processed === tree.nodes.length) {
-                        mixlib.logger.log('imagemin', 'Minified ' + tree.nodes.length + ' images');
-                        output.push(mixlib.tree(nodes));
+                        bygglib.logger.log('imagemin', 'Minified ' + tree.nodes.length + ' images');
+                        output.push(bygglib.tree(nodes));
                     }
                 });
         });

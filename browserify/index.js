@@ -1,11 +1,11 @@
 'use strict';
 
+var bygglib = require('bygg/lib');
 var browserify = require('browserify');
 var fs = require('fs');
 var extend = require('extend');
 var path = require('path');
 var convertSourceMap = require('convert-source-map');
-var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = options || {};
@@ -21,9 +21,9 @@ module.exports = function (options) {
 
         var node = tree.nodes[0];
         var entrypoint = path.join(node.base, node.name);
-        var output = mixlib.signal();
+        var output = bygglib.signal();
         var watched = [];
-        var watcher = mixlib.watcher();
+        var watcher = bygglib.watcher();
 
         var bOpts = extend({}, options, {
             basedir: node.base,
@@ -42,11 +42,11 @@ module.exports = function (options) {
             watched = [];
 
             b.bundle(function (err, buf) {
-                if (err) { mixlib.logger.error('browserify', err.message); return; }
+                if (err) { bygglib.logger.error('browserify', err.message); return; }
 
                 watcher.watch(watched);
 
-                var outputNode = mixlib.tree.cloneNode(node);
+                var outputNode = bygglib.tree.cloneNode(node);
                 var outputName = options.dest || node.name;
                 var outputPrefix = path.dirname(outputName) + '/';
                 if (outputPrefix === './') {
@@ -66,11 +66,11 @@ module.exports = function (options) {
                 sourceMap.sources = sourceMap.sources.map(function (source) {
                     return (source[0] === '/') ? path.relative(node.base, source) : source;
                 });
-                outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: outputPrefix });
+                outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: outputPrefix });
 
-                mixlib.logger.log('browserify', 'Bundled ' + outputName, new Date() - start);
+                bygglib.logger.log('browserify', 'Bundled ' + outputName, new Date() - start);
 
-                output.push(mixlib.tree([outputNode]));
+                output.push(bygglib.tree([outputNode]));
             });
         };
 

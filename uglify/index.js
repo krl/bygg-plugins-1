@@ -1,10 +1,10 @@
 'use strict';
 
-var UglifyJS = require('uglify-js');
+var bygglib = require('bygg/lib');
 var extend = require('extend');
-var path = require('path');
 var fs = require('fs');
-var mixlib = require('mix/lib');
+var path = require('path');
+var UglifyJS = require('uglify-js');
 
 module.exports = function (options) {
     options = extend({
@@ -46,7 +46,7 @@ module.exports = function (options) {
                 ast.mangle_names(options.mangle);
             }
 
-            var prevSourceMap = mixlib.tree.sourceMap.get(node);
+            var prevSourceMap = bygglib.tree.sourceMap.get(node);
             var sourceMap = UglifyJS.SourceMap({
                 orig: prevSourceMap !== undefined ? prevSourceMap : false,
                 root: options.sourceRoot
@@ -56,20 +56,20 @@ module.exports = function (options) {
             });
 
             var outputSource = ast.print_to_string(outputOptions);
-            var outputNode = mixlib.tree.cloneNode(node);
+            var outputNode = bygglib.tree.cloneNode(node);
             outputNode.data = new Buffer(outputSource, 'utf8');
 
             var sourceMapData = JSON.parse(sourceMap.toString());
-            outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMapData, {
+            outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMapData, {
                 annotate: true,
                 sourceBase: prevSourceMap === undefined ? path.dirname(node.name) : undefined
             });
 
-            mixlib.logger.log('uglify', 'Minified ' + node.name, new Date() - start);
+            bygglib.logger.log('uglify', 'Minified ' + node.name, new Date() - start);
 
             return outputNode;
         });
 
-        return mixlib.signal.constant(mixlib.tree(nodes));
+        return bygglib.signal.constant(bygglib.tree(nodes));
     };
 };

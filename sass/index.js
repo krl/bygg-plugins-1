@@ -1,10 +1,10 @@
 'use strict';
 
+var bygglib = require('bygg/lib');
 var extend = require('extend');
+var fs = require('fs');
 var path = require('path');
 var sass = require('node-sass');
-var fs = require('fs');
-var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     return function (tree) {
@@ -13,8 +13,8 @@ module.exports = function (options) {
         }
 
         var node = tree.nodes[0];
-        var output = mixlib.signal();
-        var watcher = mixlib.watcher();
+        var output = bygglib.signal();
+        var watcher = bygglib.watcher();
         var deps = [];
 
         var pushCss = function () {
@@ -32,7 +32,7 @@ module.exports = function (options) {
                     });
                     watcher.watch(deps);
 
-                    var outputNode = mixlib.tree.cloneNode(node);
+                    var outputNode = bygglib.tree.cloneNode(node);
                     var outputPrefix = path.dirname(node.name) + '/';
                     if (outputPrefix === './') {
                         outputPrefix = '';
@@ -42,14 +42,14 @@ module.exports = function (options) {
                     outputNode.data = new Buffer(result.css, 'utf8');
 
                     var sourceMap = JSON.parse(result.map);
-                    outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
+                    outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
 
-                    mixlib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
+                    bygglib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
 
-                    output.push(mixlib.tree([outputNode]));
+                    output.push(bygglib.tree([outputNode]));
                 },
                 error: function (error) {
-                    mixlib.logger.error('sass', error);
+                    bygglib.logger.error('sass', error);
                 }
             }));
         };

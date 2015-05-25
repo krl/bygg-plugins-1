@@ -1,13 +1,13 @@
 'use strict';
 
-var mixlib = require('mix/lib');
+var bygglib = require('bygg/lib');
 
 module.exports = function () {
     return function (tree) {
         var counter = 0;
 
         var nodes = tree.nodes.map(function (node) {
-            var outputNode = mixlib.tree.sourceMap.unset(node);
+            var outputNode = bygglib.tree.sourceMap.unset(node);
             if (outputNode !== node) {
                 counter++;
             }
@@ -15,9 +15,9 @@ module.exports = function () {
         });
 
         if (counter > 0) {
-            mixlib.logger.log('strip-maps', 'Removed ' + counter + ' source maps and comments');
+            bygglib.logger.log('strip-maps', 'Removed ' + counter + ' source maps and comments');
         }
 
-        return mixlib.signal.constant(mixlib.tree(nodes));
+        return bygglib.signal.constant(bygglib.tree(nodes));
     };
 };

@@ -1,7 +1,7 @@
 'use strict';
 
+var bygglib = require('bygg/lib');
 var path = require('path');
-var mixlib = require('mix/lib');
 
 var SVG_WRAPPER = '<svg xmlns="http://www.w3.org/2000/svg">#shapes#</svg>';
 
@@ -34,7 +34,7 @@ module.exports = function (options) {
         var sprite = SVG_WRAPPER.replace('#shapes#', symbols);
         var fileName = options.dest || 'svg-sprite.svg';
 
-        mixlib.logger.log('svg-sprite', 'Combined ' + tree.nodes.length + ' symbols into ' + fileName);
+        bygglib.logger.log('svg-sprite', 'Combined ' + tree.nodes.length + ' symbols into ' + fileName);
 
         var outputNode = {
             base: path.dirname(fileName),
@@ -46,6 +46,6 @@ module.exports = function (options) {
             siblings: []
         };
 
-        return mixlib.signal.constant(mixlib.tree([outputNode]));
+        return bygglib.signal.constant(bygglib.tree([outputNode]));
     };
 };

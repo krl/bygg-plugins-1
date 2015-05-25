@@ -1,11 +1,11 @@
 'use strict';
 
 // Based on gulp-size by @sindresorhus
+var bygglib = require('bygg/lib');
 var chalk = require('chalk');
-var gzipSize = require('gzip-size');
 var extend = require('extend');
+var gzipSize = require('gzip-size');
 var prettyBytes = require('pretty-bytes');
-var mixlib = require('mix/lib');
 
 module.exports = function (options) {
     options = extend({
@@ -18,7 +18,7 @@ module.exports = function (options) {
         var gzTotalSize = 0;
         var remaining = tree.nodes.length;
 
-        mixlib.logger.log('stats', '');
+        bygglib.logger.log('stats', '');
         tree.nodes.forEach(function (node, i) {
             result.push(null);
 
@@ -40,7 +40,7 @@ module.exports = function (options) {
             });
         });
 
-        return mixlib.signal.constant(tree);
+        return bygglib.signal.constant(tree);
     };
 };
 

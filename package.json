@@ -1,19 +1,20 @@
 {
-  "name": "mix-plugins",
-  "description": "Collection of plugins for the mix build system",
-  "version": "0.4.0",
+  "name": "bygg-plugins",
+  "description": "Collection of plugins for the bygg build system",
+  "version": "1.0.0",
   "author": {
     "name": "Ole André Vadla Ravnås",
-    "email": "ole.andre.ravnas@soundrop.com",
-    "url": "http://www.soundrop.fm/"
+    "email": "oleavr@gmail.com",
+    "url": "http://www.frida.re/"
   },
   "repository": {
     "type": "git",
-    "url": "https://bitbucket.org/soundrop/mix-plugins.git"
+    "url": "git://github.com/oleavr/bygg-plugins.git"
   },
   "dependencies": {
     "autoprefixer-core": "^5.1.8",
     "browserify": "^9.0.3",
+    "bygg": "^1.0.0",
     "chalk": "^1.0.0",
     "connect-livereload": "^0.5.0",
     "convert-source-map": "^1.0.0",

@@ -1,8 +1,8 @@
 'use strict';
 
 var autoprefixer = require('autoprefixer-core');
+var bygglib = require('bygg/lib');
 var path = require('path');
-var mixlib = require('mix/lib');
 
 var DEFAULT_CONSTRAINTS = ['last 2 versions', 'ie 9'];
 
@@ -14,7 +14,7 @@ module.exports = function () {
             var start = new Date();
             var input = node.data.toString('utf8');
 
-            var prevSourceMap = mixlib.tree.sourceMap.get(node);
+            var prevSourceMap = bygglib.tree.sourceMap.get(node);
             var opts = {
                 from: node.name,
                 map: {
@@ -26,16 +26,16 @@ module.exports = function () {
 
             var outputNode;
             try {
-                outputNode = mixlib.tree.cloneNode(node);
+                outputNode = bygglib.tree.cloneNode(node);
                 var result = autoprefixer({ browsers: constraints }).process(input, opts);
                 outputNode.data = new Buffer(result.css, 'utf8');
 
                 var sourceMap = JSON.parse(result.map);
-                outputNode = mixlib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
+                outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.dirname(node.name) });
 
-                mixlib.logger.log('autoprefixer', 'Prefixed ' + node.name, new Date() - start);
+                bygglib.logger.log('autoprefixer', 'Prefixed ' + node.name, new Date() - start);
             } catch (e) {
-                mixlib.logger.error('autoprefixer', e.message);
+                bygglib.logger.error('autoprefixer', e.message);
                 outputNode = undefined;
             }
             return outputNode;
@@ -44,6 +44,6 @@ module.exports = function () {
             return node !== undefined;
         });
 
-        return mixlib.signal.constant(nodes.length > 0 ? mixlib.tree(nodes) : undefined);
+        return bygglib.signal.constant(nodes.length > 0 ? bygglib.tree(nodes) : undefined);
     };
 };

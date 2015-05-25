@@ -1,13 +1,13 @@
 'use strict';
 
+var bygglib = require('bygg/lib');
+var chalk = require('chalk');
 var express = require('express');
 var http = require('http');
 var livereload = require('connect-livereload');
 var morgan = require('morgan');
 var parseurl = require('parseurl');
 var tinylr = require('tiny-lr');
-var chalk = require('chalk');
-var mixlib = require('mix/lib');
 
 var LIVERELOAD_PORT = 35729;
 
@@ -26,7 +26,7 @@ module.exports = function (port, behavior) {
     }
     app.use(fileMiddleware('index.html'));
     app.listen(port);
-    var currentTree = mixlib.tree([]);
+    var currentTree = bygglib.tree([]);
 
     function staticMiddleware(req, res, next) {
         var pathname = parseurl(req).pathname;
@@ -79,8 +79,8 @@ module.exports = function (port, behavior) {
 
         currentTree = tree;
 
-        mixlib.logger.log('serve', message);
+        bygglib.logger.log('serve', message);
 
-        return mixlib.signal.constant(mixlib.signal(tree));
+        return bygglib.signal.constant(bygglib.signal(tree));
     };
 };
