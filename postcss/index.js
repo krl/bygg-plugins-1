@@ -6,7 +6,7 @@ var path = require('path');
 
 module.exports = function (plugins, name) {
     return function (tree) {
-        var output = bygglib.signal([]);
+        var output = bygglib.signal();
         var nodes = [];
         var processed = 0;
 
