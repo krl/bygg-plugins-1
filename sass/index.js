@@ -7,17 +7,14 @@ var path = require('path');
 var sass = require('node-sass');
 
 module.exports = function (options) {
+    var watchers = [];
+
     return function (tree) {
-        if (tree.nodes.length !== 1) {
-            throw new Error('Exactly one scss file must be specified');
-        }
-
-        var node = tree.nodes[0];
+        var processed = 0;
         var output = bygglib.signal();
-        var watcher = bygglib.watcher();
-        var deps = [];
+        var nodes = [];
 
-        var pushCss = function () {
+        var render = function (node, index) {
             var sassFile = path.join(node.base, node.name);
             var start = new Date();
 
@@ -32,10 +29,10 @@ module.exports = function (options) {
                     return;
                 }
 
-                deps = result.stats.includedFiles.filter(function (path) {
+                var deps = result.stats.includedFiles.filter(function (path) {
                     return path !== sassFile;
                 });
-                watcher.watch(deps);
+                watchers[index].watch(deps);
 
                 var outputNode = bygglib.tree.cloneNode(node);
                 var outputPrefix = path.dirname(node.name) + '/';
@@ -47,19 +44,35 @@ module.exports = function (options) {
                 outputNode.data = new Buffer(result.css, 'utf8');
 
                 var sourceMap = JSON.parse(result.map);
-                outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
+                outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, {
+                    sourceBase: path.join(node.base, outputPrefix)
+                });
 
                 bygglib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
 
-                output.push(bygglib.tree([outputNode]));
+                if (nodes[index] === undefined) {
+                    processed++;
+                }
+                nodes[index] = outputNode;
+
+                if (processed === tree.nodes.length) {
+                    output.push(bygglib.tree(nodes));
+                }
             });
         };
 
-        watcher.listen(function (paths) {
-            pushCss();
+        watchers.forEach(function (watcher) {
+            watcher.close();
         });
 
-        pushCss();
+        tree.nodes.forEach(function (node, index) {
+            watchers[index] = bygglib.watcher();
+            watchers[index].listen(function (paths) {
+                render(node, index);
+            });
+
+            render(node, index);
+        });
 
         return output;
     };
