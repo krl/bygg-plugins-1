@@ -26,6 +26,7 @@
     "imagemin": "^3.0.0",
     "jshint": "^2.5.10",
     "jshint-stylish": "^2.0.0",
+    "less": "^2.5.1",
     "minimatch": "^2.0.1",
     "morgan": "^1.5.0",
     "node-sass": "^3.1.2",
