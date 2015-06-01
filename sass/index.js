@@ -22,36 +22,37 @@ module.exports = function (options) {
             var start = new Date();
 
             sass.render(extend({}, options, {
-                file: sassFile,
-                sourceMap: '_.map',
+                file: sassFile, // cannot use 'data' because the source map would show 'stdin' as a source
+                sourceMap: '_',
                 omitSourceMapUrl: true,
                 sourceMapContents: true,
-                success: function (result) {
-                    deps = result.stats.includedFiles.filter(function (path) {
-                        return path !== sassFile;
-                    });
-                    watcher.watch(deps);
-
-                    var outputNode = bygglib.tree.cloneNode(node);
-                    var outputPrefix = path.dirname(node.name) + '/';
-                    if (outputPrefix === './') {
-                        outputPrefix = '';
-                    }
-                    outputNode.name = outputPrefix + path.basename(node.name, path.extname(node.name)) + '.css';
-                    outputNode.metadata.mime = 'text/css';
-                    outputNode.data = new Buffer(result.css, 'utf8');
-
-                    var sourceMap = JSON.parse(result.map);
-                    outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
-
-                    bygglib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
-
-                    output.push(bygglib.tree([outputNode]));
-                },
-                error: function (error) {
+            }), function (error, result) {
+                if (error) {
                     bygglib.logger.error('sass', error);
+                    return;
                 }
-            }));
+
+                deps = result.stats.includedFiles.filter(function (path) {
+                    return path !== sassFile;
+                });
+                watcher.watch(deps);
+
+                var outputNode = bygglib.tree.cloneNode(node);
+                var outputPrefix = path.dirname(node.name) + '/';
+                if (outputPrefix === './') {
+                    outputPrefix = '';
+                }
+                outputNode.name = outputPrefix + path.basename(node.name, path.extname(node.name)) + '.css';
+                outputNode.metadata.mime = 'text/css';
+                outputNode.data = new Buffer(result.css, 'utf8');
+
+                var sourceMap = JSON.parse(result.map);
+                outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: path.join(node.base, outputPrefix) });
+
+                bygglib.logger.log('sass', 'Compiled ' + outputNode.name, new Date() - start);
+
+                output.push(bygglib.tree([outputNode]));
+            });
         };
 
         watcher.listen(function (paths) {
