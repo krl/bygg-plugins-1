@@ -20,7 +20,6 @@ module.exports = function (options) {
                 .src(node.data)
                 .run(function(err, result) {
                     if (err) {
-                        processed++;
                         bygglib.logger.error('imagemin', err);
                         return;
                     }
