@@ -39,18 +39,15 @@ module.exports = function (options) {
 
                 bundle.watcher.watch(bundle.watched);
 
-                var outputNode = bygglib.tree.cloneNode(bundle.inputNode);
-                var outputName = path.basename(bundle.inputNode.name, path.extname(bundle.inputNode.name)) + '.js';
-                var outputPrefix = path.dirname(bundle.inputNode.name) + '/';
-                if (outputPrefix === './') {
-                    outputPrefix = '';
-                }
-
                 // Result
+                var outputNode = bygglib.tree.cloneNode(bundle.inputNode);
+                var outputPrefix = path.dirname(bundle.inputNode.name) + '/';
+                outputPrefix = (outputPrefix === './') ? '' : outputPrefix;
+                outputNode.name = outputPrefix + path.basename(bundle.inputNode.name, path.extname(bundle.inputNode.name)) + '.js';
+                outputNode.metadata.mime = 'application/javascript';
+
                 var data = buf.toString('utf-8');
                 var outputBundle = convertSourceMap.removeComments(data);
-                outputNode.name = outputPrefix + outputName;
-                outputNode.metadata.mime = 'application/javascript';
                 outputNode.data = new Buffer(outputBundle, 'utf-8');
 
                 // Source map
@@ -60,7 +57,7 @@ module.exports = function (options) {
                 });
                 outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, { sourceBase: outputPrefix });
 
-                bygglib.logger.log('browserify', 'Bundled ' + outputName, new Date() - start);
+                bygglib.logger.log('browserify', 'Bundled ' + outputNode.name, new Date() - start);
 
                 // Push upstream if required
                 if (bundle.outputNode === undefined) {

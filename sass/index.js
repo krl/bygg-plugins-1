@@ -34,15 +34,16 @@ module.exports = function (options) {
                 });
                 watchers[index].watch(deps);
 
+                // Result
                 var outputNode = bygglib.tree.cloneNode(node);
                 var outputPrefix = path.dirname(node.name) + '/';
-                if (outputPrefix === './') {
-                    outputPrefix = '';
-                }
+                outputPrefix = (outputPrefix === './') ? '' : outputPrefix;
                 outputNode.name = outputPrefix + path.basename(node.name, path.extname(node.name)) + '.css';
                 outputNode.metadata.mime = 'text/css';
+
                 outputNode.data = new Buffer(result.css, 'utf8');
 
+                // Source Map
                 var sourceMap = JSON.parse(result.map);
                 outputNode = bygglib.tree.sourceMap.set(outputNode, sourceMap, {
                     sourceBase: path.join(node.base, outputPrefix)
